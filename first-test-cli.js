@@ -8,6 +8,8 @@ const {
   createServiceDef,
   createServiceMeta,
   createDomainDef,
+  createServiceFile,
+  createProxyFile,
   askYesNo,
 } = require("./content");
 const platform = {
@@ -40,17 +42,18 @@ rl.setPrompt(`${COLORS.cyan}Enter file name: ${note} ${COLORS.reset}`);
 
 rl.prompt();
 
+const paths = [
+  { path: "/src/app/service/def/", id: "serviceDef" },
+  { path: "/src/app/service/meta/", id: "serviceMeta" },
+  { path: "/src/app/repository/def/", id: "repositoryDef" },
+  { path: "/src/app/repository/meta/", id: "repositoryMeta" },
+  { path: "/src/app/repository/proxy/", id: "repositoryProxy" },
+  { path: "/src/app/domain/def/", id: "domainDef" },
+  { path: "/src/app/domain/meta/", id: "domainMeta" },
+];
+
 const writeFiles = (name, withDir = false) => {
   try {
-    const paths = [
-      { path: "/src/app/service/def/", id: "serviceDef" },
-      { path: "/src/app/service/meta/", id: "serviceMeta" },
-      { path: "/src/app/repository/def/", id: "repositoryDef" },
-      { path: "/src/app/repository/meta/", id: "repositoryMeta" },
-      { path: "/src/app/repository/proxy/", id: "repositoryProxy" },
-      { path: "/src/app/domain/def/", id: "domainDef" },
-      { path: "/src/app/domain/meta/", id: "domainMeta" },
-    ];
     const kebabName = camelToKebab(name);
     if (withDir) {
       paths.forEach(({ path: basePath }, index) => {
@@ -60,22 +63,38 @@ const writeFiles = (name, withDir = false) => {
       });
     }
     const fileContents = {
-      serviceDef: createServiceDef(name),
-      serviceMeta: createServiceMeta(name),
-      repositoryDef: createRepositoryDef(name),
-      repositoryMeta: createRepositoryMeta(name),
-      repositoryProxy: createRepositoryProxy(name),
-      domainDef: createDomainDef(name),
+      serviceDef: createServiceDef(name, paths),
+      serviceMeta: createServiceMeta(name, paths),
+      repositoryDef: createRepositoryDef(name, paths),
+      repositoryMeta: createRepositoryMeta(name, paths),
+      repositoryProxy: createRepositoryProxy(name, paths),
+      domainDef: createDomainDef(name, paths),
       domainMeta: createDomainMeta(name),
     };
     paths.forEach(({ path: basePath, id }) => {
-      const fileName =
-        id.includes("service") || id.includes("repository")
-          ? id.includes("meta")
-            ? `i-${kebabName}-${id.replace("Meta", "").toLowerCase()}.ts`
-            : `${kebabName}-${id.toLowerCase()}.ts`
-          : `i-${kebabName}.ts`;
+      let fileName;
 
+      if (id.includes("repository")) {
+        if (id.includes("Meta")) {
+          fileName = `i-${kebabName}-repository.ts`;
+        } else if (id.includes("Def")) {
+          fileName = `${kebabName}-repository.ts`;
+        } else {
+          fileName = `${kebabName}-proxy.ts`;
+        }
+      } else if (id.includes("domain")) {
+        if (id.includes("Def")) {
+          fileName = `${kebabName}.ts`;
+        } else {
+          fileName = `i-${kebabName}.ts`;
+        }
+      } else {
+        if (id.includes("Def")) {
+          fileName = `${kebabName}-service.ts`;
+        } else {
+          fileName = `i-${kebabName}-service.ts`;
+        }
+      }
       const filePath = path.join(process.cwd(), basePath, fileName);
       fs.writeFileSync(filePath, fileContents[id]);
     });
@@ -96,10 +115,76 @@ rl.on("line", async (input) => {
     !hasSrcDir && fs.mkdirSync(`${rootPath}`);
     const hasAppDir = fs.existsSync(`${rootPath}/app`);
     !hasAppDir && fs.mkdirSync(`${rootPath}/app`);
-    // const hasProxyFile = fs.existsSync(`${rootPath}/proxy.ts`);
-    // !hasProxyFile && fs.mkdirSync(`${rootPath}/proxy.ts`);
+    //------------------proxy.ts File --------------------//
+    const hasProxyFile = fs.existsSync(`${rootPath}/proxy.ts`);
+    !hasProxyFile &&
+      fs.writeFileSync(`${rootPath}/proxy.ts`, createProxyFile());
+
+    const importText = `import { ${input} } from '${
+      paths[4].path
+    }${camelToKebab(input)}.proxy'\n`;
+    let updatedProxyFileContent = fs.readFileSync(
+      `${rootPath}/proxy.ts`,
+      "utf8"
+    );
+
+    updatedProxyFileContent = updatedProxyFileContent.replace(
+      /(const\s+clientMaps\s*=\s*\{)([\s\S]*?)(\s*\})/,
+      (match, start, content, end) => {
+        return `${start}\n  ${input},\n${content.trim()}\n${end}`;
+      }
+    );
+
+    fs.writeFileSync(
+      `${rootPath}/proxy.ts`,
+      importText + updatedProxyFileContent,
+      "utf8"
+    );
+
+    //------------------ ./proxy.ts File --------------------//
+
+    //------------------Service.ts File------------------------
     const hasServiceFile = fs.existsSync(`${rootPath}/service.ts`);
-    !hasServiceFile && fs.mkdirSync(`${rootPath}/service.ts`);
+    !hasServiceFile &&
+      fs.writeFileSync(`${rootPath}/service.ts`, createServiceFile());
+
+    const newRepository = `${camelToPascal(
+      input
+    )}Repository: { key: "${camelToPascal(input)}Repository", config: {} },`;
+
+    const newService = `${camelToPascal(input)}Service: { key: "${camelToPascal(
+      input
+    )}Service", config: {} },`;
+
+    let updatedServiceFileContent = fs.readFileSync(
+      `${rootPath}/service.ts`,
+      "utf8"
+    );
+
+    // Update repositoryMap
+    updatedServiceFileContent = updatedServiceFileContent.replace(
+      /(const\s+repositoryMap\s*=\s*\{)([\s\S]*?)(\s*\})/,
+      (match, start, content, end) => {
+        return `${start}\n  ${newRepository}\n${content.trim()}\n${end}`;
+      }
+    );
+
+    // Update serviceMap
+    updatedServiceFileContent = updatedServiceFileContent.replace(
+      /(const\s+serviceMap\s*=\s*\{)([\s\S]*?)(\s*\})/,
+      (match, start, content, end) => {
+        return `${start}\n  ${newService}\n${content.trim()}\n${end}`;
+      }
+    );
+
+    // Write the updated content back to the file
+    fs.writeFileSync(
+      `${rootPath}/service.ts`,
+      updatedServiceFileContent,
+      "utf8"
+    );
+
+    //------------------./ Service.ts File------------------------
 
     // check domain
     const hasDomainDir = fs.existsSync(`${rootPath}/app/domain`);
@@ -138,9 +223,8 @@ rl.on("line", async (input) => {
     writeFiles(input, withDir);
     rl.close(0);
   } catch (err) {
-    rl.close(1);
-
     console.log(err);
+    rl.close(1);
   }
 });
 
