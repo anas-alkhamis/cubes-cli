@@ -9,12 +9,12 @@ const camelToPascal = (input) => {
 };
 
 // Create Domain Def File
-const createDomainDef = (name) => {
+const createDomainDef = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
-      import { Base } from 'cubes';
-      import type { I${PascalName} } from '../meta/i-${KebabName}'
+      import { type TOptional, Base } from 'cubes';
+      import type { I${PascalName} } from '${paths[6].path}i-${KebabName}'
        
       class ${PascalName} extends Base<I${PascalName}, 'id'> implements I${PascalName} {
       id: TOptional<number>
@@ -44,18 +44,18 @@ const createDomainMeta = (name) => {
 };
 
 // Create Repository Def File
-const createRepositoryDef = (name) => {
+const createRepositoryDef = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
       import { IoCLevelsEnum } from '@/control'
   import { repositoryMap, serviceMap } from '@/service'
-  import { I${PascalName}Repository } from '../../meta/${KebabName}/i-${KebabName}-repository'
+  import { I${PascalName}Repository } from '${paths[3].path}i-${KebabName}-repository'
   import { TCommonArgs } from '@/app/domain/meta/i-list-args'
   import { INetworkManager, TProxyResult } from 'cubes-ui'
-  import { I${PascalName} from '@/app/domain/meta/i-${KebabName}'
+  import { I${PascalName} from '${paths[6].path}i-${KebabName}'
   import { Inject, Service, TUID } from 'cubes'
-  import { T${PascalName} } from '../../proxy/${KebabName}/${KebabName}.proxy'
+  import { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
   
   @Service(IoCLevelsEnum.DEV_2, repositoryMap.${PascalName}Repository.key)
   class ${PascalName}Repository implements I${PascalName}Repository {
@@ -88,14 +88,14 @@ const createRepositoryDef = (name) => {
 };
 
 // Create Repository Meta File
-const createRepositoryMeta = (name) => {
+const createRepositoryMeta = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
       import { IRepository, TProxyResult } from 'cubes-ui'
-  import { T${PascalName} } from '../../proxy/${KebabName}/${KebabName}.proxy'
-  import { I${PascalName} } from '@/app/domain/meta/i-${KebabName}'
-  import { TCommonArgs } from '@/app/domain/meta/i-list-args'
+  import { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
+  import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
+  import { TCommonArgs } from '${paths[6].path}i-list-args'
   
   interface I${PascalName}Repository extends IRepository<T${PascalName}> {
     /**
@@ -126,12 +126,12 @@ const createRepositoryMeta = (name) => {
 };
 
 // Create Repository Proxy File
-const createRepositoryProxy = (name) => {
+const createRepositoryProxy = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   const baseURL = () => "`${baseURL}${api}`";
   return `
-      import { ${PascalName} } from '@/app/domain/def/${KebabName}'
+      import { ${PascalName} } from '${paths[5].path}${KebabName}'
   import { clientFactory, Pagination } from 'cubes-ui'
   
   const { baseURL, api } = (window as Window & typeof globalThis & { configure: any })['configure']().network[''] // update network
@@ -165,13 +165,13 @@ const createRepositoryProxy = (name) => {
 };
 
 // Create Service Def File
-const createServiceDef = (name) => {
+const createServiceDef = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
-        import { I${PascalName} } from '@/app/domain/meta/i-${KebabName}'
-  import { TCommonArgs } from '@/app/domain/meta/i-list-args'
-  import { I${PascalName}Repository } from '@/app/repository/meta/${KebabName}/i-${KebabName}.repository'
+        import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
+  import { TCommonArgs } from '${paths[6].path}i-list-args'
+  import { I${PascalName}Repository } from '${paths[3].path}/i-${KebabName}.repository'
   import { IoCLevelsEnum } from '@/control'
   import { serviceMap } from '@/service'
   import { Inject, Service, Singleton } from 'cubes'
@@ -189,27 +189,27 @@ const createServiceDef = (name) => {
       return this.${PascalName}Repository.getAsync(id)
     }
     putAsync(${name}: I${PascalName}): TProxyResult<I${PascalName}> {
-      return this.${PascalName}Repository.putAsync(${PascalName})
+      return this.${PascalName}Repository.putAsync(${name})
     }
     postAsync(${name}: I${PascalName}): TProxyResult<I${PascalName}> {
-      return this.${PascalName}Repository.postAsync(${PascalName})
+      return this.${PascalName}Repository.postAsync(${name})
     }
     deleteAsync(id: string): TProxyResult<I${PascalName}> {
       return this.${PascalName}Repository.deleteAsync(id)
     }
   }
   
-  export default ClientService
+  export default ${PascalName}Service
             `;
 };
 
 // Create Service Meta File
-const createServiceMeta = (name) => {
+const createServiceMeta = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
-        import { IClient } from '@/app/domain/meta/i-${KebabName}'
-  import { TCommonArgs } from '@/app/domain/meta/i-list-args'
+        import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
+  import { TCommonArgs } from '${paths[6].path}i-list-args'
   import { TProxyResult } from 'cubes-ui'
   
   interface I${PascalName}Service {
@@ -237,6 +237,38 @@ const createServiceMeta = (name) => {
   
   export type { I${PascalName}Service }
   
+            `;
+};
+
+// Create Service.ts File
+const createServiceFile = () => {
+  return `
+       //@ts-nocheck
+const services = require.context(
+  // Look for files in the current directory
+  '.',
+  //  look in subdirectories
+  true,
+  // Only include .ts files
+  /\.ts$/
+)
+
+const serviceMap = {}
+const repositoryMap = {}
+
+type TCubesSecurityServiceMap = typeof serviceMap
+export { services, serviceMap, repositoryMap }
+export type { TCubesServiceMap } // rename with your service map name
+
+            `;
+};
+
+// Create Service.ts File
+const createProxyFile = () => {
+  return `
+const clientMaps = {}
+export { clientMaps }
+export type TClients = typeof clientMaps
             `;
 };
 
@@ -299,5 +331,7 @@ module.exports = {
   createRepositoryProxy,
   createServiceDef,
   createServiceMeta,
+  createServiceFile,
+  createProxyFile,
   askYesNo,
 };
