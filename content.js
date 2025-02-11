@@ -50,12 +50,12 @@ const createRepositoryDef = (name, paths) => {
   return `
       import { IoCLevelsEnum } from '@/control'
   import { repositoryMap, serviceMap } from '@/service'
-  import { I${PascalName}Repository } from '${paths[3].path}i-${KebabName}-repository'
-  import { TCommonArgs } from '@/app/domain/meta/i-list-args'
-  import { INetworkManager, TProxyResult } from 'cubes-ui'
-  import { I${PascalName} from '${paths[6].path}i-${KebabName}'
   import { Inject, Service, TUID } from 'cubes'
-  import { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
+  import type { I${PascalName}Repository } from '${paths[3].path}i-${KebabName}-repository'
+  import type { TCommonArgs } from '@/app/domain/meta/i-list-args'
+  import type { INetworkManager, TProxyResult } from 'cubes-ui'
+  import type { I${PascalName} from '${paths[6].path}i-${KebabName}'
+  import type { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
   
   @Service(IoCLevelsEnum.DEV_2, repositoryMap.${PascalName}Repository.key)
   class ${PascalName}Repository implements I${PascalName}Repository {
@@ -92,10 +92,10 @@ const createRepositoryMeta = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
-      import { IRepository, TProxyResult } from 'cubes-ui'
-  import { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
-  import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
-  import { TCommonArgs } from '${paths[6].path}i-list-args'
+      import type { IRepository, TProxyResult } from 'cubes-ui'
+  import type { T${PascalName} } from '${paths[4].path}/${KebabName}.proxy'
+  import type { I${PascalName} } from '${paths[6].path}i-${KebabName}'
+  import type { TCommonArgs } from '${paths[6].path}i-list-args'
   
   interface I${PascalName}Repository extends IRepository<T${PascalName}> {
     /**
@@ -169,13 +169,13 @@ const createServiceDef = (name, paths) => {
   const PascalName = camelToPascal(name);
   const KebabName = camelToKebab(name);
   return `
-        import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
-  import { TCommonArgs } from '${paths[6].path}i-list-args'
-  import { I${PascalName}Repository } from '${paths[3].path}/i-${KebabName}.repository'
   import { IoCLevelsEnum } from '@/control'
   import { serviceMap } from '@/service'
-  import { Inject, Service, Singleton } from 'cubes'
-  import { TProxyResult } from 'cubes-ui'
+  import type { I${PascalName} } from '${paths[6].path}i-${KebabName}'
+  import type { TCommonArgs } from '${paths[6].path}i-list-args'
+  import type { I${PascalName}Repository } from '${paths[3].path}/i-${KebabName}.repository'
+  import type { Inject, Service, Singleton } from 'cubes'
+  import type { TProxyResult } from 'cubes-ui'
   
   @Service(IoCLevelsEnum.DEV_2, serviceMap.${PascalName}Service.key)
   @Singleton
@@ -209,8 +209,8 @@ const createServiceMeta = (name, paths) => {
   const KebabName = camelToKebab(name);
   return `
         import { I${PascalName} } from '${paths[6].path}i-${KebabName}'
-  import { TCommonArgs } from '${paths[6].path}i-list-args'
-  import { TProxyResult } from 'cubes-ui'
+  import type { TCommonArgs } from '${paths[6].path}i-list-args'
+  import type { TProxyResult } from 'cubes-ui'
   
   interface I${PascalName}Service {
     /**
