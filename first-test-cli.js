@@ -43,13 +43,13 @@ rl.setPrompt(`${COLORS.cyan}Enter file name: ${note} ${COLORS.reset}`);
 rl.prompt();
 
 const paths = [
-  { path: "/src/app/service/def/", id: "serviceDef" },
-  { path: "/src/app/service/meta/", id: "serviceMeta" },
-  { path: "/src/app/repository/def/", id: "repositoryDef" },
-  { path: "/src/app/repository/meta/", id: "repositoryMeta" },
-  { path: "/src/app/repository/proxy/", id: "repositoryProxy" },
-  { path: "/src/app/domain/def/", id: "domainDef" },
-  { path: "/src/app/domain/meta/", id: "domainMeta" },
+  { path: "@/app/service/def/", id: "serviceDef" },
+  { path: "@/app/service/meta/", id: "serviceMeta" },
+  { path: "@/app/repository/def/", id: "repositoryDef" },
+  { path: "@/app/repository/meta/", id: "repositoryMeta" },
+  { path: "@/app/repository/proxy/", id: "repositoryProxy" },
+  { path: "@/app/domain/def/", id: "domainDef" },
+  { path: "@/app/domain/meta/", id: "domainMeta" },
 ];
 
 const writeFiles = (name, withDir = false) => {
